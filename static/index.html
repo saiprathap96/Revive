@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revive — AI Revenue Recovery Intelligence</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #05060d;
+    --card: rgba(17, 20, 38, 0.72);
+    --card-border: rgba(129, 140, 248, 0.14);
+    --accent: #818cf8;
+    --accent2: #22d3ee;
+    --violet: #a78bfa;
+    --green: #34d399;
+    --red: #fb7185;
+    --yellow: #fbbf24;
+    --pink: #f472b6;
+    --text: #e7eaf6;
+    --muted: #7c86a8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+
+  body {
+    background:
+      radial-gradient(ellipse 900px 500px at 85% -10%, rgba(99,102,241,0.16), transparent 60%),
+      radial-gradient(ellipse 700px 500px at -10% 100%, rgba(34,211,238,0.10), transparent 60%),
+      var(--bg);
+    color: var(--text); display: flex; min-height: 100vh;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(129,140,248,0.07) 1px, transparent 1px);
+    background-size: 26px 26px; z-index: 0;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar { width: 236px; flex-shrink: 0; padding: 26px 16px; position: sticky; top: 0; height: 100vh;
+    display: flex; flex-direction: column; gap: 6px; z-index: 2;
+    background: rgba(10,12,24,0.6); border-right: 1px solid var(--card-border); backdrop-filter: blur(14px); }
+  .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 30px; }
+  .brand .logo { width: 42px; height: 42px; border-radius: 13px; position: relative;
+    background: linear-gradient(135deg, #6366f1, #22d3ee);
+    box-shadow: 0 0 26px rgba(99,102,241,0.65), inset 0 0 12px rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center; }
+  .brand .logo::after { content: ''; width: 12px; height: 12px; border-radius: 3px;
+    background: white; transform: rotate(45deg); }
+  .brand h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.4px;
+    background: linear-gradient(90deg, #c7d2fe, #67e8f9); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .brand span { display: block; font-size: 9px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+
+  .nav-label { font-size: 9px; letter-spacing: 2px; color: #525c7e; text-transform: uppercase; padding: 14px 12px 8px; font-weight: 700; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 12px;
+    font-size: 13.5px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all .2s;
+    border: 1px solid transparent; position: relative; }
+  .nav-item:hover { color: var(--text); background: rgba(129,140,248,0.06); }
+  .nav-item.active { color: #c7d2fe; background: linear-gradient(90deg, rgba(99,102,241,0.18), rgba(34,211,238,0.05));
+    border-color: rgba(129,140,248,0.3); box-shadow: 0 0 18px rgba(99,102,241,0.15); }
+  .nav-item.active::before { content: ''; position: absolute; left: -17px; top: 20%; bottom: 20%;
+    width: 3px; border-radius: 3px; background: linear-gradient(180deg, var(--accent), var(--accent2));
+    box-shadow: 0 0 10px var(--accent); }
+  .icon-chip { width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0; position: relative;
+    background: rgba(129,140,248,0.1); border: 1px solid rgba(129,140,248,0.2); }
+  .nav-item.active .icon-chip { background: rgba(129,140,248,0.25); box-shadow: 0 0 10px rgba(99,102,241,0.4); }
+  .icon-chip::after { content: ''; position: absolute; inset: 7px; border-radius: 2px;
+    background: currentColor; opacity: .85; }
+  .ic-grid::after { box-shadow: 0 -5px 0 -2px currentColor, 5px 0 0 -2px currentColor, 5px -5px 0 -2px currentColor; }
+  .ic-list::after { height: 2px; top: 8px; box-shadow: 0 4px 0 0 currentColor, 0 8px 0 0 currentColor; inset: 6px; }
+  .ic-mail::after { clip-path: polygon(0 0,100% 0,50% 60%); height: 8px; top: 6px; opacity: 1;
+    box-shadow: 0 6px 0 -1px currentColor; }
+  .ic-brain::after { border-radius: 50% 50% 50% 0; }
+  .ic-gear::after { clip-path: polygon(30% 0,70% 0,70% 30%,100% 30%,100% 70%,70% 70%,70% 100%,30% 100%,30% 70%,0 70%,0 30%,30% 30%); opacity: 1; }
+
+  .sidebar .footer { margin-top: auto; padding: 14px; border-radius: 14px; font-size: 11.5px;
+    color: var(--muted); line-height: 1.65; background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(34,211,238,0.04));
+    border: 1px solid var(--card-border); }
+  .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green); box-shadow: 0 0 8px var(--green); margin-right: 6px;
+    animation: pulse 1.6s infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .sidebar .footer b { color: #a5f3d0; font-weight: 600; }
+
+  /* ── Main ── */
+  .main { flex: 1; min-width: 0; z-index: 1; }
+  .topbar { display: flex; align-items: center; gap: 16px; padding: 16px 34px; position: sticky; top: 0; z-index: 10;
+    border-bottom: 1px solid var(--card-border);
+    background: rgba(5,6,13,0.75); backdrop-filter: blur(14px); }
+  .topbar h2 { font-size: 16px; font-weight: 700; }
+  .topbar .crumb { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .btn { padding: 9px 16px; border-radius: 11px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+    border: 1px solid rgba(129,140,248,0.25); background: rgba(129,140,248,0.07); color: #c7d2fe;
+    transition: all .15s; }
+  .btn:hover { border-color: var(--accent); box-shadow: 0 0 14px rgba(99,102,241,0.3); }
+  .btn.primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none;
+    box-shadow: 0 4px 22px rgba(99,102,241,0.55); }
+  .btn.primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(99,102,241,0.7); }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 12px; font-weight: 800;
+    background: linear-gradient(135deg, #8b5cf6, #22d3ee); display: flex; align-items: center;
+    justify-content: center; box-shadow: 0 0 16px rgba(139,92,246,0.5); }
+  .live { display: flex; align-items: center; font-size: 11.5px; color: #a5f3d0; font-weight: 600; }
+
+  .content { padding: 30px 34px; max-width: 1400px; }
+
+  /* ── Hero command bar (like reference) ── */
+  .hero { border-radius: 20px; padding: 26px 30px; margin-bottom: 24px; position: relative; overflow: hidden;
+    background: linear-gradient(120deg, rgba(99,102,241,0.22), rgba(34,211,238,0.07) 55%, rgba(5,6,13,0.4));
+    border: 1px solid rgba(129,140,248,0.35);
+    box-shadow: 0 0 40px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.06); }
+  .hero::after { content: ''; position: absolute; right: -60px; top: -60px; width: 220px; height: 220px;
+    border-radius: 50%; background: radial-gradient(circle, rgba(139,92,246,0.35), transparent 70%);
+    filter: blur(30px); }
+  .hero .tag { display: inline-flex; align-items: center; gap: 8px; font-size: 10.5px; font-weight: 700;
+    letter-spacing: 1.5px; color: #a5b4fc; padding: 5px 12px; border-radius: 999px; margin-bottom: 14px;
+    background: rgba(129,140,248,0.12); border: 1px solid rgba(129,140,248,0.3); }
+  .hero .tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+  .hero p { font-size: 16px; line-height: 1.6; max-width: 640px; }
+  .hero .hl-v { color: var(--violet); font-weight: 700; }
+  .hero .hl-c { color: var(--accent2); font-weight: 700; }
+  .hero .hl-g { color: var(--green); font-weight: 700; }
+  .hero .sub { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .hero .cta { position: absolute; right: 30px; top: 50%; transform: translateY(-50%); }
+
+  /* ── KPI cards ── */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .kpi { border-radius: 18px; padding: 22px; position: relative; overflow: hidden;
+    background: var(--card); border: 1px solid var(--card-border); backdrop-filter: blur(10px);
+    transition: transform .2s, box-shadow .2s; }
+  .kpi:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(99,102,241,0.18); }
+  .kpi::after { content: ''; position: absolute; right: -24px; top: -24px; width: 90px; height: 90px;
+    border-radius: 50%; background: radial-gradient(circle, var(--kc), transparent 70%); opacity: .12; }
+  .kpi .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; color: var(--muted); font-weight: 700; }
+  .kpi .value { font-size: 30px; font-weight: 800; letter-spacing: -1px; margin-top: 12px;
+    color: var(--kc); text-shadow: 0 0 22px color-mix(in srgb, var(--kc) 45%, transparent); }
+  .kpi .sub { font-size: 11.5px; color: var(--muted); margin-top: 7px; }
+
+  /* ── Cards / charts ── */
+  .charts { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 1000px) { .charts { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--card-border); border-radius: 18px;
+    padding: 22px; margin-bottom: 16px; backdrop-filter: blur(10px); }
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
+  .card-head h3 { font-size: 13.5px; font-weight: 700; }
+  .tagx { font-size: 9.5px; font-weight: 700; letter-spacing: 1px; padding: 4px 11px; border-radius: 999px;
+    background: rgba(129,140,248,0.12); color: #a5b4fc; border: 1px solid rgba(129,140,248,0.25); }
+  .hint { font-size: 11px; color: var(--muted); }
+
+  /* ── Toolbar / table ── */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .toolbar input, .toolbar select { background: rgba(5,6,13,0.6); border: 1px solid var(--card-border);
+    border-radius: 11px; padding: 10px 14px; color: var(--text); font-size: 12.5px; outline: none; transition: all .2s; }
+  .toolbar input { flex: 1; min-width: 180px; }
+  .toolbar input:focus, .toolbar select:focus { border-color: var(--accent); box-shadow: 0 0 12px rgba(99,102,241,0.25); }
+  .count-pill { font-size: 11.5px; color: var(--muted); padding: 8px 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--muted);
+    padding: 12px 16px; border-bottom: 1px solid var(--card-border); white-space: nowrap; font-weight: 700; }
+  th.sortable { cursor: pointer; }
+  th.sortable:hover { color: #a5b4fc; }
+  td { padding: 13px 16px; border-bottom: 1px solid rgba(129,140,248,0.06); font-size: 13px; }
+  tr.row { cursor: pointer; transition: background .15s; }
+  tr.row:hover { background: rgba(129,140,248,0.05); }
+  tr.row.expanded td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+  .inv-id { color: var(--muted); font-family: 'Cascadia Code', monospace; font-size: 11.5px; }
+  .badge { padding: 4px 11px; border-radius: 999px; font-size: 10.5px; font-weight: 700; letter-spacing: .4px; }
+  .badge.failed { background: rgba(251,113,133,0.12); color: var(--red); border: 1px solid rgba(251,113,133,0.3); }
+  .badge.at_risk { background: rgba(251,191,36,0.1); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+  .badge.high { background: rgba(52,211,153,0.1); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+  .badge.medium { background: rgba(251,191,36,0.1); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+  .badge.low { background: rgba(244,114,182,0.1); color: var(--pink); border: 1px solid rgba(244,114,182,0.3); }
+  .score-bar { display: flex; align-items: center; gap: 9px; }
+  .score-bar .track { width: 56px; height: 4px; border-radius: 4px; background: rgba(129,140,248,0.12); overflow: hidden; }
+  .score-bar .fill { height: 100%; border-radius: 4px; box-shadow: 0 0 6px currentColor; }
+  .email-row td { background: rgba(99,102,241,0.05); padding: 20px 24px; }
+  .panel-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 14px; }
+  @media (max-width: 900px) { .panel-grid { grid-template-columns: 1fr; } }
+  .panel { background: rgba(5,6,13,0.55); border: 1px solid var(--card-border); border-radius: 13px; padding: 16px; }
+  .panel h4 { font-size: 10px; text-transform: uppercase; letter-spacing: 1.6px; color: #a5b4fc;
+    margin-bottom: 10px; font-weight: 700; }
+  .reasoning { font-size: 12.5px; line-height: 1.7; color: #aab3cc; font-style: italic; }
+  .email-box { white-space: pre-wrap; font-size: 12.5px; line-height: 1.7; color: #c3cbe0; }
+
+  /* Drafts / reasoning */
+  .draft-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 18px; margin-bottom: 14px; backdrop-filter: blur(10px); transition: border-color .2s, box-shadow .2s; }
+  .draft-card:hover { border-color: rgba(129,140,248,0.4); box-shadow: 0 4px 24px rgba(99,102,241,0.12); }
+  .draft-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .draft-head b { font-size: 14px; }
+  .amt { color: var(--green); font-weight: 700; margin-left: auto; }
+  .draft-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .reason-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 18px; margin-bottom: 12px; display: flex; gap: 16px; backdrop-filter: blur(10px); }
+  .score-big { font-size: 20px; font-weight: 800; min-width: 54px; text-align: center; padding: 10px 6px;
+    border-radius: 13px; align-self: flex-start; }
+  .reason-card p { font-size: 12.5px; color: #aab3cc; line-height: 1.65; font-style: italic; margin-top: 4px; }
+  .reason-card .meta { font-size: 10.5px; color: var(--muted); margin-top: 7px; letter-spacing: .3px; }
+
+  /* Settings */
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0;
+    border-bottom: 1px solid rgba(129,140,248,0.07); }
+  .setting-row .info b { font-size: 13.5px; display: block; }
+  .setting-row .info span { font-size: 11.5px; color: var(--muted); }
+  .switch { width: 46px; height: 25px; border-radius: 999px; background: rgba(129,140,248,0.12);
+    border: 1px solid var(--card-border); position: relative; cursor: pointer; transition: all .2s; flex-shrink: 0; }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 17px; height: 17px;
+    border-radius: 50%; background: #6b74a0; transition: all .2s; }
+  .switch.on { background: linear-gradient(90deg, #6366f1, #22d3ee); border-color: transparent;
+    box-shadow: 0 0 14px rgba(99,102,241,0.5); }
+  .switch.on::after { left: 24px; background: white; }
+  .kv { display: grid; grid-template-columns: 180px 1fr; gap: 10px 16px; font-size: 12.5px; }
+  .kv .k { color: var(--muted); }
+  .kv .v { color: #c3cbe0; font-family: 'Cascadia Code', monospace; font-size: 12px; }
+
+  #loading { text-align: center; padding: 80px; }
+  .loader { width: 46px; height: 46px; border: 3px solid rgba(99,102,241,0.15); border-top-color: var(--accent);
+    border-right-color: var(--accent2); border-radius: 50%; margin: 0 auto 18px;
+    animation: spin .8s linear infinite; box-shadow: 0 0 30px rgba(99,102,241,0.3); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .load-text { color: #a5b4fc; font-size: 14px; font-weight: 600; }
+  .load-sub { color: var(--muted); font-size: 11.5px; margin-top: 7px; letter-spacing: .4px; }
+  .fade-in { animation: fadeIn .5s ease both; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }
+  .empty { text-align: center; padding: 50px; color: var(--muted); font-size: 13px; }
+  .view { display: none; } .view.active { display: block; }
+  .view-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+  .view-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 22px; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #12152a; border: 1px solid rgba(129,140,248,0.3);
+    border-left: 3px solid var(--accent2); border-radius: 12px; padding: 14px 18px; font-size: 12.5px;
+    z-index: 100; animation: fadeIn .3s ease; box-shadow: 0 10px 40px rgba(0,0,0,0.6); color: #c7d2fe; }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">
+    <div class="logo"></div>
+    <div><h1>Revive</h1><span>Recovery Intelligence</span></div>
+  </div>
+  <div class="nav-label">Overview</div>
+  <div class="nav-item active" data-view="dashboard"><span class="icon-chip ic-grid"></span>Dashboard</div>
+  <div class="nav-item" data-view="invoices"><span class="icon-chip ic-list"></span>All Invoices
+    <span class="tagx" id="nav-count" style="margin-left:auto">0</span></div>
+  <div class="nav-item" data-view="drafts"><span class="icon-chip ic-mail"></span>Outreach Drafts
+    <span class="tagx" id="nav-drafts" style="margin-left:auto">0</span></div>
+  <div class="nav-label">Intelligence</div>
+  <div class="nav-item" data-view="reasoning"><span class="icon-chip ic-brain"></span>Agent Reasoning</div>
+  <div class="nav-item" data-view="settings"><span class="icon-chip ic-gear"></span>Settings</div>
+  <div class="footer"><b><span class="status-dot"></span>AI AGENT ACTIVE</b><br>
+    Scoring invoices and drafting recovery emails autonomously.</div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div><h2 id="tb-title">Revenue Recovery Dashboard</h2><div class="crumb" id="tb-crumb">Home / Overview</div></div>
+    <div class="topbar-actions">
+      <button class="btn" id="btn-export">Export CSV</button>
+      <button class="btn" id="btn-refresh">Re-run Agent</button>
+      <span class="live"><span class="status-dot"></span>Live</span>
+      <div class="avatar" id="avatar">RV</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="loading">
+      <div class="loader"></div>
+      <div class="load-text">AI Agent is analyzing invoices</div>
+      <div class="load-sub">SCORING RECOVERY LIKELIHOOD &middot; SELECTING CHANNELS &middot; DRAFTING EMAILS</div>
+    </div>
+
+    <div id="app" style="display:none">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <div class="hero fade-in">
+          <div class="tag">AI REVENUE INTELLIGENCE</div>
+          <p id="banner-msg">Analyzing <span class="hl-v">revenue leakage</span> across
+            <span class="hl-c">failed and at-risk invoices</span>, ranking recoverable value by
+            <span class="hl-g">recovery likelihood</span>.</p>
+          <div class="sub">Scores combine failure reason, attempt history, amount and timing. Select any invoice for the full decision trail.</div>
+          <button class="btn primary cta" data-goto="invoices">Review Invoices</button>
+        </div>
+        <div class="kpis">
+          <div class="kpi fade-in" style="--kc: var(--red)">
+            <div class="label">Total Revenue Leaked</div><div class="value" id="k-leaked">—</div>
+            <div class="sub">Failed and at-risk invoices</div></div>
+          <div class="kpi fade-in" style="--kc: var(--green)">
+            <div class="label">AI-Projected Recovery</div><div class="value" id="k-recovery">—</div>
+            <div class="sub">Invoices scoring above 40</div></div>
+          <div class="kpi fade-in" style="--kc: var(--accent2)">
+            <div class="label">Recovery Rate</div><div class="value" id="k-rate">—</div>
+            <div class="sub">Of total leaked revenue</div></div>
+          <div class="kpi fade-in" style="--kc: var(--violet)">
+            <div class="label">Invoices Analyzed</div><div class="value" id="k-count">—</div>
+            <div class="sub">Scored by AI agent</div></div>
+        </div>
+        <div class="charts">
+          <div class="card fade-in">
+            <div class="card-head"><h3>Leaked Value by Customer</h3><span class="tagx">TOP ACCOUNTS</span></div>
+            <canvas id="chart-customers" height="90"></canvas></div>
+          <div class="card fade-in">
+            <div class="card-head"><h3>Recovery Score Distribution</h3></div>
+            <canvas id="chart-scores"></canvas></div>
+        </div>
+      </div>
+
+      <!-- INVOICES -->
+      <div class="view" id="view-invoices">
+        <div class="view-title">All Invoices</div>
+        <div class="view-sub">Select any row to inspect the AI decision trail and draft email.</div>
+        <div class="toolbar">
+          <input id="search" type="text" placeholder="Search invoice or customer...">
+          <select id="filterStatus"><option value="">All statuses</option>
+            <option value="failed">Failed</option><option value="at_risk">At risk</option></select>
+          <select id="filterScore"><option value="">All scores</option>
+            <option value="high">High (67+)</option><option value="medium">Medium (34–66)</option>
+            <option value="low">Low (0–33)</option></select>
+          <button class="btn" id="btn-clear">Clear</button>
+          <span class="count-pill" id="count-pill"></span></div>
+        <div class="card" style="overflow-x:auto">
+          <table><thead><tr>
+            <th class="sortable" data-sort="id">Invoice</th>
+            <th class="sortable" data-sort="customer">Customer</th>
+            <th class="sortable" data-sort="amount">Amount</th>
+            <th class="sortable" data-sort="status">Status</th>
+            <th class="sortable" data-sort="recovery_score">AI Score</th>
+            <th>Channel</th><th>Retry</th></tr></thead>
+          <tbody id="tbody"></tbody></table></div>
+      </div>
+
+      <!-- DRAFTS -->
+      <div class="view" id="view-drafts">
+        <div class="view-title">AI Outreach Drafts</div>
+        <div class="view-sub">Auto-generated recovery emails for high-scoring invoices. One click to copy.</div>
+        <div id="drafts-list"></div></div>
+
+      <!-- REASONING -->
+      <div class="view" id="view-reasoning">
+        <div class="view-title">Agent Reasoning Log</div>
+        <div class="view-sub">Why the agent scored each invoice the way it did — full transparency.</div>
+        <div class="toolbar"><select id="reason-sort">
+          <option value="score-desc">Highest score first</option>
+          <option value="scoreasc">Lowest score first</option>
+          <option value="amount-desc">Largest amount first</option></select></div>
+        <div id="reason-list"></div></div>
+
+      <!-- SETTINGS -->
+      <div class="view" id="view-settings">
+        <div class="view-title">Settings</div>
+        <div class="view-sub">Agent configuration and system information.</div>
+        <div class="card">
+          <div class="setting-row"><div class="info"><b>Auto-draft emails</b><span>Draft recovery email when score is above 40</span></div>
+            <div class="switch on" data-toggle></div></div>
+          <div class="setting-row"><div class="info"><b>Prefer calls for high-value</b><span>Over $2,000 routes to channel: call</span></div>
+            <div class="switch" data-toggle></div></div>
+          <div class="setting-row"><div class="info"><b>Compact table rows</b><span>Denser invoice list</span></div>
+            <div class="switch" data-toggle id="sw-compact"></div></div></div>
+        <div class="card"><div class="card-head"><h3>System</h3></div>
+          <div class="kv">
+            <div class="k">Agent model</div><div class="v">openai/gpt-oss-120b (Groq)</div>
+            <div class="k">Backend</div><div class="v">FastAPI + Uvicorn</div>
+            <div class="k">Database</div><div class="v">SQLite — revenue.db</div>
+            <div class="k">Invoices in DB</div><div class="v" id="set-count">—</div>
+            <div class="k">Recoverable value</div><div class="v" id="set-recovery">—</div></div></div>
+      </div>
+
+    </div>
+
+<script>
+const fmt = n => '$' + Number(n).toLocaleString('en-US', {maximumFractionDigits: 0});
+let ALL = [], sortKey = 'recovery_score', sortDir = -1;
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+
+const VIEW_META = {
+  dashboard: ['Revenue Recovery Dashboard', 'Home / Overview'],
+  invoices:  ['All Invoices', 'Home / Invoices'],
+  drafts:    ['AI Outreach Drafts', 'Home / Outreach'],
+  reasoning: ['Agent Reasoning Log', 'Home / Intelligence'],
+  settings:  ['Settings', 'Home / Settings']
+};
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === name));
+  document.getElementById('tb-title').textContent = VIEW_META[name][0];
+  document.getElementById('tb-crumb').textContent = VIEW_META[name][1];
+  if (name === 'drafts') renderDrafts();
+  if (name === 'reasoning') renderReasoning();
+  if (name === 'settings') renderSettings();
+}
+
+document.querySelectorAll('.nav-item').forEach(n =>
+  n.addEventListener('click', () => showView(n.dataset.view)));
+document.querySelectorAll('[data-goto]').forEach(b =>
+  b.addEventListener('click', () => { showView(b.dataset.goto); window.scrollTo({top: 0, behavior: 'smooth'}); }));
+
+async function load() {
+  try {
+    const data = await (await fetch('/api/recoverable')).json();
+    if (data.error) {
+      document.getElementById('loading').innerHTML = '<div class="load-text">Error: ' + data.error + '</div>';
+      return;
+    }
+    ALL = data.invoices;
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = '';
+
+    const rec = data.summary.projected_recovery;
+    document.getElementById('k-leaked').textContent = fmt(data.summary.total_leaked);
+    document.getElementById('k-recovery').textContent = fmt(rec);
+    document.getElementById('k-rate').textContent = data.summary.recovery_rate;
+    document.getElementById('k-count').textContent = ALL.length;
+    document.getElementById('nav-count').textContent = ALL.length;
+    document.getElementById('nav-drafts').textContent = ALL.filter(i => i.draft_email).length;
+
+    const top = [...ALL].sort((a, b) => b.amount - a.amount)[0];
+    document.getElementById('banner-msg').innerHTML =
+      'The agent has analyzed <span class="hl-v">' + ALL.length + ' invoices</span> and identified ' +
+      '<span class="hl-g">' + fmt(rec) + '</span> in recoverable revenue — ' +
+      data.summary.recovery_rate + ' of total leakage. Largest single exposure: ' +
+      '<span class="hl-v">' + top.customer + '</span>.';
+
+    // charts — solid colors, no gradients (crash-proof)
+    const byCust = {}, dist = {high: 0, medium: 0, low: 0};
+    ALL.forEach(i => {
+      byCust[i.customer] = (byCust[i.customer] || 0) + i.amount;
+      if (i.recovery_score > 66) dist.high++;
+      else if (i.recovery_score > 33) dist.medium++; else dist.low++;
+    });
+    const entries = Object.entries(byCust).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+    new Chart(document.getElementById('chart-customers'), {type: 'bar', data: {
+      labels: entries.map(e => e[0]),
+      datasets: [{data: entries.map(e => Math.round(e[1])),
+        backgroundColor: '#6366f1', hoverBackgroundColor: '#818cf8',
+        borderRadius: 8, barThickness: 26}]
+    }, options: {plugins: {legend: {display: false}}, scales: {
+      x: {ticks: {color: '#7c86a8', font: {size: 10}}, grid: {display: false}},
+      y: {ticks: {color: '#7c86a8', callback: v => '$' + (v >= 1000 ? (v/1000) + 'k' : v), font: {size: 10}},
+          grid: {color: 'rgba(129,140,248,0.07)'}}}}});
+
+    new Chart(document.getElementById('chart-scores'), {type: 'doughnut', data: {
+      labels: ['High (67-100)', 'Medium (34-66)', 'Low (0-33)'],
+      datasets: [{data: [dist.high, dist.medium, dist.low],
+        backgroundColor: ['#34d399', '#fbbf24', '#f472b6'],
+        borderColor: 'rgba(5,6,13,0.9)', borderWidth: 3, cutout: '68%'}]
+    }, options: {plugins: {legend: {position: 'bottom', labels: {color: '#7c86a8', boxWidth: 10, font: {size: 10}}}}}});
+
+    renderTable();
+  } catch (err) {
+    document.getElementById('loading').innerHTML = '<div class="load-text">Page error: ' + err.message + '</div>';
+    console.error(err);
+  }
+}
+
+function visibleRows() {
+  const q = (document.getElementById('search') ? document.getElementById('search').value : '').toLowerCase();
+  const fs = document.getElementById('filterStatus').value;
+  const fsc = document.getElementById('filterScore').value;
+  return ALL.filter(i =>
+    (!fs || i.status === fs) &&
+    (!fsc || (fsc === 'high' && i.recovery_score > 66) ||
+             (fsc === 'medium' && i.recovery_score > 33 && i.recovery_score <= 66) ||
+             (fsc === 'low' && i.recovery_score <= 33)) &&
+    (!q || (i.customer + ' ' + i.id).toLowerCase().includes(q))
+  ).sort((a, b) => {
+    const x = a[sortKey], y = b[sortKey];
+    return (typeof x === 'number' ? x - y : String(x).localeCompare(String(y))) * sortDir;
+  });
+}
+
+function renderTable() {
+  const rows = visibleRows();
+  document.getElementById('count-pill').textContent = rows.length + ' of ' + ALL.length;
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">No invoices match your filters.</td></tr>';
+    return;
+  }
+  rows.forEach(inv => {
+    const cls = inv.recovery_score > 66 ? 'high' : inv.recovery_score > 33 ? 'medium' : 'low';
+    const fill = cls === 'high' ? '#34d399' : cls === 'medium' ? '#fbbf24' : '#f472b6';
+    const row = document.createElement('tr');
+    row.className = 'row';
+    row.innerHTML =
+      '<td class="inv-id">' + inv.id + '</td>' +
+      '<td><b>' + inv.customer + '</b></td>' +
+      '<td><b>$' + inv.amount.toLocaleString(undefined, {maximumFractionDigits: 0}) + '</b></td>' +
+      '<td><span class="badge ' + inv.status + '">' + String(inv.status).replace('_', ' ') + '</span></td>' +
+      '<td><div class="score-bar"><span class="badge ' + cls + '">' + inv.recovery_score + '</span>' +
+      '<div class="track"><div class="fill" style="width:' + inv.recovery_score + '%; background:' + fill + '"></div></div></div></td>' +
+      '<td>' + (inv.best_channel || '-') + '</td>' +
+      '<td>' + (inv.retry_in_days === null || inv.retry_in_days === undefined ? '-' : inv.retry_in_days) + ' days</td>';
+    const detail = document.createElement('tr');
+    detail.className = 'email-row';
+    detail.style.display = 'none';
+    detail.innerHTML =
+      '<td colspan="7"><div class="panel-grid">' +
+      '<div class="panel"><h4>Agent Reasoning</h4><div class="reasoning">' + (inv.reasoning || '-') + '</div></div>' +
+      '<div class="panel"><h4>Draft Recovery Email</h4><div class="email-box">' + (inv.draft_email || 'Score below threshold — no email drafted.') + '</div></div>' +
+      '</div></td>';
+    row.onclick = function () {
+      const open = detail.style.display !== 'none';
+      detail.style.display = open ? 'none' : '';
+      row.classList.toggle('expanded', !open);
+    };
+    tbody.append(row, detail);
+  });
+}
+
+['search', 'filterStatus', 'filterScore'].forEach(function (id) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', renderTable);
+});
+const btnClear = document.getElementById('btn-clear');
+if (btnClear) btnClear.addEventListener('click', function () {
+  document.getElementById('search').value = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterScore').value = '';
+  renderTable(); toast('Filters cleared');
+});
+document.querySelectorAll('th.sortable').forEach(function (th) {
+  th.addEventListener('click', function () {
+    const k = th.dataset.sort;
+    sortDir = (sortKey === k) ? -sortDir : -1;
+    sortKey = k;
+    document.querySelectorAll('th.sortable').forEach(function (h) { h.textContent = h.textContent.replace(/ [▲▼]$/, ''); });
+    th.textContent = th.textContent + (sortDir === -1 ? ' ▼' : ' ▲');
+    renderTable();
+  });
+});
+
+function renderDrafts() {
+  const list = document.getElementById('drafts-list');
+  list.innerHTML = '';
+  const withEmails = ALL.filter(i => i.draft_email);
+  if (!withEmails.length) {
+    list.innerHTML = '<div class="empty">No drafts yet — they appear automatically for invoices scoring above 40.</div>';
+    return;
+  }
+  withEmails.forEach(function (inv) {
+    const card = document.createElement('div');
+    card.className = 'draft-card fade-in';
+    card.innerHTML =
+      '<div class="draft-head"><b>' + inv.customer + '</b>' +
+      '<span class="inv-id">' + inv.id + '</span>' +
+      '<span class="tagx">' + inv.best_channel + ' &middot; retry in ' + inv.retry_in_days + 'd</span>' +
+      '<span class="amt">$' + inv.amount.toLocaleString(undefined, {maximumFractionDigits: 0}) + '</span></div>' +
+      '<div class="email-box">' + inv.draft_email + '</div>' +
+      '<div class="draft-actions">' +
+      '<button class="btn" data-copy="' + inv.id + '">Copy Email</button>' +
+      '<button class="btn" data-goto="invoices">View in Table</button></div>';
+    list.appendChild(card);
+  });
+  list.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const inv = ALL.find(i => i.id === btn.dataset.copy);
+      navigator.clipboard.writeText(inv.draft_email)
+        .then(() => toast('Email for ' + inv.customer + ' copied to clipboard'))
+        .catch(() => toast('Copy failed — select the text manually'));
+    });
+  });
+  list.querySelectorAll('[data-goto]').forEach(function (b) {
+    b.addEventListener('click', () => showView(b.dataset.goto));
+  });
+}
+
+function renderReasoning() {
+  const selEl = document.getElementById('reason-sort');
+  const sel = selEl ? selEl.value : 'score-desc';
+  const sorted = [...ALL].sort(function (a, b) {
+    if (sel === 'score-asc' || sel === 'scoreasc') return a.recovery_score - b.recovery_score;
+    if (sel === 'amount-desc') return b.amount - a.amount;
+    return b.recovery_score - a.recovery_score;
+  });
+  const list = document.getElementById('reason-list');
+  list.innerHTML = '';
+  const color = s => s > 66 ? '#34d399' : s > 33 ? '#fbbf24' : '#f472b6';
+  const bg = s => s > 66 ? 'rgba(52,211,153,0.1)' : s > 33 ? 'rgba(251,191,36,0.1)' : 'rgba(244,114,182,0.1)';
+  sorted.forEach(function (inv) {
+    const card = document.createElement('div');
+    card.className = 'reason-card fade-in';
+    card.innerHTML =
+      '<div class="score-big" style="color:' + color(inv.recovery_score) + '; background:' + bg(inv.recovery_score) + '">' +
+      inv.recovery_score + '</div>' +
+      '<div><b>' + inv.customer + '</b> <span class="inv-id">' + inv.id + '</span>' +
+      '<span class="tagx" style="margin-left:8px">$' + inv.amount.toLocaleString(undefined, {maximumFractionDigits: 0}) + '</span>' +
+      '<p>' + (inv.reasoning || '-') + '</p>' +
+      '<div class="meta">' + String(inv.status).replace('_', ' ') + ' &middot; ' + inv.attempts + ' failed attempts &middot; via ' + inv.best_channel + '</div></div>';
+    list.appendChild(card);
+  });
+}
+const reasonSel = document.getElementById('reason-sort');
+if (reasonSel) reasonSel.addEventListener('change', renderReasoning);
+
+function renderSettings() {
+  document.getElementById('set-count').textContent = ALL.length + ' analyzed';
+  document.getElementById('set-recovery').textContent =
+    fmt(ALL.filter(i => i.recovery_score > 40).reduce((s, i) => s + i.amount, 0));
+}
+document.querySelectorAll('[data-toggle]').forEach(function (sw) {
+  sw.addEventListener('click', function () {
+    sw.classList.toggle('on');
+    if (sw.id === 'sw-compact') {
+      document.querySelectorAll('td').forEach(function (td) {
+        td.style.padding = sw.classList.contains('on') ? '7px 16px' : '';
+      });
+    }
+  });
+});
+
+const btnExport = document.getElementById('btn-export');
+if (btnExport) btnExport.addEventListener('click', function () {
+  if (!ALL.length) { toast('No data to export yet'); return; }
+  const head = ['id', 'customer', 'email', 'amount', 'status', 'failure_reason', 'recovery_score', 'best_channel', 'retry_in_days'];
+  const lines = [head.join(',')].concat(ALL.map(function (i) {
+    return head.map(function (k) { return '"' + String(i[k] === null || i[k] === undefined ? '' : i[k]).replace(/"/g, '""') + '"'; }).join(',');
+  }));
+  const blob = new Blob([lines.join('\n')], {type: 'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'revive_recovery_report.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Exported ' + ALL.length + ' invoices to CSV');
+});
+
+const btnRefresh = document.getElementById('btn-refresh');
+if (btnRefresh) btnRefresh.addEventListener('click', async function () {
+  this.textContent = 'Running...';
+  this.disabled = true;
+  try {
+    const r = await fetch('/api/recoverable', {method: 'POST'});
+    const d = await r.json();
+    toast(d.error ? 'Agent error: ' + d.error : 'Agent re-run complete');
+    setTimeout(() => location.reload(), 1200);
+  } catch (e) {
+    toast('Agent re-run failed: ' + e.message);
+    this.textContent = 'Re-run Agent';
+    this.disabled = false;
+  }
+});
+
+const avatar = document.getElementById('avatar');
+if (avatar) avatar.addEventListener('click', () => showView('settings'));
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && document.getElementById('view-invoices').classList.contains('active')) {
+    if (btnClear) btnClear.click();
+  }
+});
+
+load();
+</script>
