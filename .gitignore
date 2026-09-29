@@ -1,7 +1,39 @@
 .env
+.env.*
 .venv/
+venv/
+ENV/
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.log
+
+# Database / local app data
 revenue.db
 *.sqlite3
 *.sqlite
+
+# Node / frontend build artifacts
+node_modules/
+**/node_modules/
+npm-debug.log*
+coverage/
+build/
+**/build/
+dist/
+**/dist/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python packaging
+.pytest_cache/
+.mypy_cache/
+.pyre/
